@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#151d1b"><meta name="description" content="五分钟一局的组枪搜打撤。搜刮模块，组装怪枪，活着带回回收站。">
+  <title>废枪回收站 · Scrap Run</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23151d1b'/%3E%3Cpath d='M18 19h28v9H29v8h17v9H18z' fill='%23e3ba70'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="废枪回收站首页"><span class="brand-symbol">S<span>R</span></span><div><strong>废枪回收站</strong><small>SCRAP RUN / 回收作业终端</small></div></a>
+      <div class="top-status"><span class="live-dot"></span><span id="shift-label">回收员已就位</span><span class="version">试玩版 0.1</span></div>
+      <div class="header-actions"><button id="sound-btn" class="icon-btn" aria-label="开启声音" title="开启声音">♪<span>声音关</span></button><button id="help-btn" class="icon-btn" aria-label="查看操作说明">?<span>操作</span></button><button id="pause-btn" class="icon-btn" disabled>Ⅱ<span>暂停</span></button></div>
+    </header>
+    <main>
+      <section class="play-column">
+        <div class="zonebar"><div><span class="eyebrow">SECTOR / 工厂回收区</span><h1 id="zone-name">回收站 · 出发准备</h1></div><div class="zone-readout"><span id="run-clock">00:00</span><button id="quick-action" class="quick-action">开始回收 ↗</button></div></div>
+        <div class="game-frame" id="game-frame">
+          <canvas id="game" width="960" height="600" aria-label="工厂回收区。WASD 或方向键移动，鼠标点地移动，E 搜索或撤离，Tab 改枪，空格暂停。"></canvas>
+          <div id="game-hud" class="game-hud hidden"><div class="vital"><span>完整度</span><b id="hp-label">100</b><div><i id="hp-fill"></i></div></div><div class="vital energy"><span>电量</span><b id="energy-label">100</b><div><i id="energy-fill"></i></div></div><div class="vital heat"><span>热量</span><b id="heat-label">0</b><div><i id="heat-fill"></i></div></div><div class="alert-tag" id="alert-label">警戒 0</div></div>
+          <div id="camp-overlay" class="camp-overlay"><div class="camp-stamp">作业许可 / READY</div><h2>零件带走。<br>灵感留下。</h2><p>搜一间仓库，拼一把怪枪。<br>下一道门后，是新零件，还是回不去的路？</p><div class="camp-tags"><span>单人搜打撤</span><span>自由组枪</span><span>随时暂停</span></div></div>
+          <div id="pause-overlay" class="pause-overlay hidden"><span class="eyebrow">WORLD PAUSED</span><h2 id="pause-title">作业已暂停</h2><p id="pause-copy">敌人和倒计时都在等你。</p><button id="resume-btn" class="primary-btn">继续回收 <span>→</span></button></div>
+          <div id="context-prompt" class="context-prompt hidden"></div>
+          <div id="toast" class="toast" role="status" aria-live="polite"></div>
+          <div class="touch-controls" id="touch-controls"><div id="move-pad" class="move-pad" role="group" aria-label="移动摇杆，向任意方向拖动"><span class="pad-cross">＋</span><span id="move-knob" class="move-knob"></span><small>移动</small></div><button id="touch-interact" class="touch-interact"><strong>E</strong><span>搜索 / 撤离</span></button></div>
+          <div class="canvas-corner">废弃工业园 / ZONE 07 <span>✦</span></div>
+        </div>
+        <div class="below-canvas"><div class="control-hints"><span><kbd>W A S D</kbd> 移动</span><span><kbd>E</kbd> 搜索 / 撤离</span><span><kbd>Tab</kbd> 改枪</span><span><kbd>空格</kbd> 暂停</span></div><button id="auto-btn" class="text-btn">自动射击 <i class="switch-on"></i></button></div>
+        <div class="field-bottom">
+          <section class="route-panel"><div class="panel-heading"><span class="eyebrow">01 / ROUTE</span><h3>回收路线</h3><span class="small-tag">2 个撤离点</span></div><div id="minimap" class="minimap" aria-label="工厂九宫格路线图"></div><p class="route-caption"><span class="map-dot"></span>当前位置 <span class="map-exit"></span>撤离点 <span class="map-unvisited"></span>未探索</p></section>
+          <section class="log-panel"><div class="panel-heading"><span class="eyebrow">02 / FIELD NOTES</span><h3>作业记录</h3></div><div id="log-list" class="log-list" aria-live="polite"></div></section>
+        </div>
+      </section>
+      <aside class="workbench">
+        <button id="bench-close" class="bench-close">收起改装台，继续游戏 ↓</button>
+        <div class="workbench-title"><div><span class="eyebrow">YOUR NEXT BAD IDEA</span><h2>造一把不讲道理的枪。</h2></div><span class="tool-cross">✣</span></div>
+        <div class="bench-tabs" role="tablist" aria-label="回收终端"><button id="gun-tab" class="selected" role="tab" aria-selected="true" aria-controls="gun-panel">改装台</button><button id="bag-tab" role="tab" aria-selected="false" aria-controls="bag-panel">战利品 <span id="bag-count">0/6</span></button></div>
+        <section id="gun-panel" role="tabpanel" aria-labelledby="gun-tab">
+          <div class="section-caption"><span>机匣 / RECEIVER</span><span id="chassis-slot-count">6 槽</span></div>
+          <div class="chassis-picker"><button data-chassis="scout"><span class="chassis-icon">╼</span>轻便型<small>快移 / 4 槽</small></button><button data-chassis="standard" class="selected"><span class="chassis-icon">╾</span>均衡型<small>均衡 / 6 槽</small></button><button data-chassis="heavy"><span class="chassis-icon">═</span>重载型<small>大电芯 / 6 槽</small></button></div>
+          <div class="gun-display"><svg viewBox="0 0 340 110" role="img" aria-label="由机匣、电芯、枪管与散热组件组成的回收枪"><defs><pattern id="gun-grid" width="17" height="17" patternUnits="userSpaceOnUse"><path d="M17 0H0V17" fill="none" stroke="#36423b" stroke-width=".5"/></pattern></defs><rect width="340" height="110" fill="url(#gun-grid)" opacity=".7"/><g id="gun-art"><path d="M41 42h43l11 12v24H61L41 64z" fill="#566553" stroke="#829079"/><path d="M89 33h119v43H89z" fill="#819076" stroke="#b6bea1"/><path d="M103 31h98v9h-98z" fill="#c6bc96"/><path d="M116 75h31l-8 26h-25z" fill="#4d5c4d" stroke="#9ca78e"/><path d="M168 74h31l7 24h-35z" fill="#dab06b"/><rect x="208" y="43" width="67" height="22" fill="#667866" stroke="#a5b398"/><path d="M275 39h23v30h-23z" fill="#b9b99d"/><path d="M111 50h14v10h-14zM135 50h14v10h-14zM159 50h14v10h-14zM183 50h14v10h-14z" fill="#25362f"/><rect x="118" y="20" width="28" height="10" fill="#788b75"/><path d="M217 45v18m11-18v18m11-18v18m11-18v18" stroke="#273a30" stroke-width="4"/><circle id="gun-core" cx="104" cy="56" r="4" fill="#e4bf79"/></g><path d="M25 90H83m163 0h70" stroke="#6a7766" stroke-dasharray="3 4"/><text x="28" y="23" fill="#9aa690" font-size="8" font-family="monospace">CUSTOM ASSEMBLY / 01</text></svg><span id="gun-nickname">小型坏主意 / MK.01</span></div>
+          <div class="section-caption"><span>弹体逻辑 / 从左向右执行</span><button id="clear-gun" class="text-btn">清空</button></div>
+          <div id="module-slots" class="module-slots"></div>
+          <div id="compile-status" class="compile-status" aria-live="polite"></div>
+          <div class="gun-stats"><div><small>峰值耗能</small><b id="stat-energy">—</b></div><div><small>单轮弹体</small><b id="stat-projectiles">—</b></div><div><small>最大供能</small><b id="stat-capacity">—</b></div></div>
+          <div class="preset-row"><span>装配方案</span><button data-preset="simple">基础</button><button data-preset="homing">追踪载弹</button><button data-preset="spread">破片散射</button></div>
+          <div id="module-note" class="module-note">先装一枚弹体，再试试加入追踪或三重发射。</div>
+          <div class="bench-actions"><button id="test-btn" class="secondary-btn">◎ 免费试射</button><button id="work-btn" class="secondary-btn hidden">打开改装台</button></div>
+        </section>
+        <section id="bag-panel" role="tabpanel" aria-labelledby="bag-tab" class="hidden"><div class="section-caption"><span id="bag-title">仓库库存</span><span>1 格保险</span></div><div id="bag-list" class="bag-list"></div><div class="insurance-note">带盾标记的 1 件背包模块，阵亡后仍能保留。点击「保险」切换。</div><div class="warehouse-total"><span>累计回收材料</span><b id="scrap-total">0</b></div></section>
+        <div class="deploy-area"><div class="mission-line"><span class="mission-mark">↗</span><div><strong id="mission-title">回收委托：带回第一件战利品</strong><small id="mission-copy">推荐时长 4–7 分钟 · 全程可暂停</small></div></div><button id="deploy-btn" class="primary-btn">开始回收 <span>→</span></button><button id="interact-btn" class="primary-btn hidden">搜索 / 撤离 <kbd>E</kbd></button><button id="abandon-btn" class="text-btn hidden">结束本次作业…</button><p class="save-note" id="save-note"><span></span>进度保存在此浏览器</p></div>
+      </aside>
+    </main>
+    <footer><span>SCRAP RUN <i>/</i> 一点零件，很多可能。</span><span>本地存档 · 单人 PVE · 无需安装</span></footer>
+  </div>
+  <div class="mobile-actions" id="mobile-actions"><button id="mobile-pause">Ⅱ 暂停</button><button id="mobile-edit">✣ 改枪</button><button id="mobile-bag">▣ 背包</button><button id="mobile-map">⌗ 路线</button></div>
+  <dialog id="route-dialog"><button class="dialog-close" data-close="route-dialog" aria-label="关闭路线图">×</button><span class="eyebrow">FACTORY ROUTE / 工厂路线</span><h2>下一间，还是现在撤？</h2><div id="route-modal-map" class="minimap"></div><p class="manual-foot">亮色房间是当前位置，↗ 是撤离点。沿房间边缘的开放门口移动，即可进入相邻房间。</p><button id="route-return" class="primary-btn">回到作业 <span>→</span></button></dialog>
+  <dialog id="help-dialog"><button class="dialog-close" data-close="help-dialog" aria-label="关闭">×</button><span class="eyebrow">FIELD MANUAL / 新人入职</span><h2>拿到好东西，记得回来。</h2><div class="manual-grid"><div><b>01 / 搜</b><p>WASD、方向键或鼠标点地移动。靠近箱子按 E 搜索，背包最多 6 件。油桶和薄墙可以打碎。</p></div><div><b>02 / 打</b><p>默认自动瞄准射击。F 切换自动射击；按住鼠标右键可朝指针射击。电量会恢复，过热需要冷却。</p></div><div><b>03 / 改</b><p>Tab 暂停并改枪。模块从左到右执行；触发弹包住后面的组合，命中才释放。多重发射复制后面的组合。</p></div><div><b>04 / 撤</b><p>入口和最深处都有撤离区。靠近按 E，停留 5 秒；移动离开或受伤会中断。阵亡丢失出战模块，保险位除外。</p></div></div><p class="manual-foot">空格暂停 · 切出窗口自动暂停 · 原地存档 · 免费试射不消耗模块<br>手机：左下摇杆移动，右下按钮交互，底栏打开改枪台与路线图。</p><button class="primary-btn" data-close="help-dialog">明白，开工 <span>→</span></button></dialog>
+  <dialog id="result-dialog"><span class="eyebrow" id="result-kicker">SHIFT COMPLETE</span><h2 id="result-title">回收成功</h2><p id="result-copy"></p><div id="result-loot" class="result-loot"></div><button id="result-return" class="primary-btn">返回改装台 <span>→</span></button></dialog>
+  <dialog id="abandon-dialog"><h2>结束这次作业？</h2><p>出战模块和未保险的战利品将丢失。你也可以暂停，下次继续。</p><div class="dialog-actions"><button class="secondary-btn" data-close="abandon-dialog">继续保留</button><button id="confirm-abandon" class="danger-btn">确认结束</button></div></dialog>
+  <script src="engine.js"></script><script src="game.js"></script>
+</body>
+</html>

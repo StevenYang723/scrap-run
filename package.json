@@ -1,0 +1,14 @@
+{
+  "name": "scrap-run",
+  "version": "0.1.0",
+  "private": true,
+  "description": "手机竖屏组枪搜打撤网页小游戏",
+  "scripts": {
+    "start": "node serve.mjs",
+    "test": "node check.cjs",
+    "export": "node export.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
